@@ -24,14 +24,25 @@ class Cevre:
 class BalistikHesap:
     def __init__(self):
         pass
-
     def bagil_hiz_hesapla(self, uav, cevre):
         vx = uav.hiz_x - cevre.ruzgar_Vx
         vy = uav.hiz_y - cevre.ruzgar_Vy
         return vx, vy 
-
     def surunme_kuvveti_hesapla(self, rho, Cd, alan, toplam_hiz):
         return 0.5 * rho * toplam_hiz**2 * Cd * alan
+    def ivme_hesapla(self, vx, vy, yuk_agirlik, surunme_kuvveti, g):
+        toplam_hiz = (vx**2 + vy**2)**0.5
+        x_ivme = - (surunme_kuvveti/yuk_agirlik) * (vx/toplam_hiz)
+        y_ivme = -g - (surunme_kuvveti/yuk_agirlik)  * (vy/toplam_hiz)
+        return x_ivme, y_ivme
+    def hiz_guncelle(self, vx, vy, x_ivme, y_ivme, dt):
+        vx += x_ivme * dt
+        vy += y_ivme * dt
+        return vx, vy
+    def konum_guncelle(self, x, y, vx, vy, dt):
+        x += vx * dt
+        y += vy * dt
+        return x, y
     
     def dusme_hesapla(self, uav, yuk, cevre):
         g = cevre.yercekimi_ivmesi
@@ -53,10 +64,7 @@ class BalistikHesap:
             x_ivme = - (surunme_kuvveti/yuk_agirlik) * (vx/toplam_hiz)
             y_ivme = -g - (surunme_kuvveti/yuk_agirlik)  * (vy/toplam_hiz)
             
-            vx += x_ivme * dt
-            vy += y_ivme * dt
+            vx , vy = self.hiz_guncelle(vx, vy, x_ivme, y_ivme, dt)
             
-            x += vx * dt
-            y += vy * dt
-            
+            x, y = self.konum_guncelle(x, y, vx, vy, dt)
         return x
