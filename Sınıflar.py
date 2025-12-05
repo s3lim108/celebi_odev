@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 class UAV:
     def __init__(self, irtifa, hiz_x=0, hiz_y=0):
         self.hiz_x = hiz_x
@@ -98,3 +99,72 @@ class BalistikHesap:
                 print("maksimum iterasyona ulasildi, istenen tolerans saglanamadi.")
 
         return tahmini_vx
+    
+
+
+
+    def dusme_grafikli(self, uav, yuk, cevre):
+        g = cevre.yercekimi_ivmesi
+        rho = cevre.hava_yogunlugu
+        Cd = yuk.Cd
+        alan = yuk.alan
+        yuk_agirlik = yuk.kutle / g
+        
+        # başlangıç hızları
+        vx, vy = self.bagil_hiz_hesapla(uav, cevre)
+
+        # başlangıç konumu
+        x, y = 0, uav.irtifa
+        dt = 0.1
+
+        # grafik için listeler
+        xs, ys = [x], [y]
+        speeds = []
+        times = [0]
+        t = 0
+
+        while y > 0:
+            toplam_hiz = (vx**2 + vy**2)**0.5
+            surunme = self.surunme_kuvveti_hesapla(rho, Cd, alan, toplam_hiz)
+
+            x_ivme = - (surunme/yuk_agirlik) * (vx/toplam_hiz)
+            y_ivme = - g - (surunme/yuk_agirlik) * (vy/toplam_hiz)
+
+            vx, vy = self.hiz_guncelle(vx, vy, x_ivme, y_ivme, dt)
+            x, y = self.konum_guncelle(x, y, vx, vy, dt)
+
+            xs.append(x)
+            ys.append(max(y, 0))    # yer altına düşmesin
+            speeds.append((vx**2 + vy**2)**0.5)
+
+            t += dt
+            times.append(t)
+
+        # --- TRAJEKTORİ GRAFİĞİ ---
+        plt.figure(figsize=(10,6))
+        plt.plot(xs, ys)
+        plt.xlabel("X (metre)")
+        plt.ylabel("Y (metre)")
+        plt.title("Balistik Düşüş Trajektorisi")
+        plt.grid(True)
+        plt.show()
+
+        # --- HIZ GRAFİĞİ ---
+        plt.figure(figsize=(10,6))
+        plt.plot(times[:-1], speeds)
+        plt.xlabel("Zaman (saniye)")
+        plt.ylabel("Hız (m/s)")
+        plt.title("Yük'ün Hızının Zamana Göre Değişimi")
+        plt.grid(True)
+        plt.show()
+
+        return xs[-1]  # yere temas X noktası
+    
+
+uav = UAV(irtifa=200, hiz_x=20, hiz_y=0)
+yuk = Yuk(kutle=2, Cd=0.4, alan=0.03)
+cevre = Cevre(ruzgar_Vx=2, ruzgar_Vy=0)
+
+hesap = BalistikHesap()
+
+hesap.dusme_grafikli(uav, yuk, cevre)
