@@ -40,7 +40,7 @@ class BalistikHesap:
         yuk_alan = yuk.alan
         yuk_agirlik = yuk.kutle / g
         
-        vx, vy, vz = bagil_hiz_hesapla(uav, cevre)
+        vx, vy, vz = self.bagil_hiz_hesapla(uav, cevre)
         
         x, y, z = 0, uav.irtifa, 0
         
